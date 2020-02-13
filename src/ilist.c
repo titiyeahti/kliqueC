@@ -78,7 +78,38 @@ ilist ilist_remove(ilist l, int i)
 				}
 }
 
-ilist ilist_iter(ilist l, void (* fun)(int, void*), void* arg)
+ilist ilist_inter(ilist l1, ilist l2)
+{
+				if (l1==NULL || l2==NULL)
+								return NULL;
+				else
+				{
+								if (l1->val == l2->val)
+												return ilist_add(ilist_inter(l1->next, l2->next), l1->val);
+								else 
+								{
+												if (l1->val > l2->val)
+																return ilist_inter(l2, l1->next);
+												else 
+																return ilist_inter(l1, l2->next);
+								}
+				}
+}
+
+int ilist_size(ilist l)
+{
+				int size = 0;
+				ilist it;
+				it = l;
+				while (it != NULL)
+				{
+								size ++;
+								it = it->next;
+				}
+				return size;
+}
+
+void ilist_iter(ilist l, void (* fun)(int, void*), void* arg)
 {
 				if (l != NULL)
 				{
@@ -108,4 +139,5 @@ void ilist_print(ilist l)
 												printf("%d, ", l->val);
 												ilist_print(l->next);
 								}
+				}
 }

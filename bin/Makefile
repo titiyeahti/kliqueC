@@ -1,18 +1,14 @@
-UTILS=../utils
-CCFLAGS=-std=c99
-LIBS= -lOpenCL 
+CC = gcc -Wall -Wextra -ansi
+SRC = ../src/
+LIBS =
 
-test2.out : test2.c m_graph.o
-	gcc $^ -o $@
+all : test.out
 
-test.out : test.c m_graph.o graph.o
-	gcc $^ -o $@
+test.out : ilist.o mgraph.o $(SRC)test.c
+	$(CC) $^ -g -o $@ $(LIBS)
 
-dijkstra.out : dijkstra.c graph.o m_graph.o
-	gcc $^ $(CFLAGS) $(LIBS) -I $(UTILS) -o $@
+%.o : $(SRC)%.c $(SRC)%.h
+	$(CC) -c -g $< -o $@ $(LIBS)
 
-%.o : %.c
-	gcc -c $< $(CFLAGS) -I $(UTILS) 
-
-clean :
-	rm -rf *.o *.out
+clean:
+	rm -rf *.out *.o

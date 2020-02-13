@@ -39,7 +39,12 @@ int ilist_contains(ilist l, int i);
 
 ilist ilist_remove(ilist l, int i);
 
-void ilist_iter(ilist l, void (* fun)(void*), void* arg);
+/* return the deacreasing sorted intersection of l1, l2 (also sorted from top to bottom) */
+ilist ilist_inter(ilist l1, ilist l2);
+
+int ilist_size(ilist l);
+
+void ilist_iter(ilist l, void (* fun)(int, void*), void* arg);
 
 void ilist_free(ilist l);
 

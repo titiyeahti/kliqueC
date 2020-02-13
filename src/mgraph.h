@@ -34,7 +34,7 @@ struct mgraph
 {
 				int n;
 				adjp* v;
-}
+};
 
 typedef struct mgraph* mgraph_p;
 
@@ -49,6 +49,10 @@ void mgraph_new_edge(mgraph_p g, int i, int j);
 mgraph_p mgraph_from_file(FILE* fd, char config);
 
 void mgraph_free(mgraph_p g);
+
+int* kdeg(mgraph_p g, int k);
+
+int not_empty(int* res, int size);
 
 void mgraph_print(mgraph_p g);
 
