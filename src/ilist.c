@@ -140,4 +140,6 @@ void ilist_print(ilist l)
 												ilist_print(l->next);
 								}
 				}
+				else
+								printf("\n");
 }

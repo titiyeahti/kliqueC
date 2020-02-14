@@ -159,8 +159,16 @@ void mgraph_free(mgraph_p g)
 
 void listing(mgraph_p g, ilist gr, ilist clique, int k, int* res)
 {
-				printf("gr :\n");
+/*-----------------------------------------------------------------------------
+ * PRINTING ZONE
+ *-----------------------------------------------------------------------------*/
+				printf("k = %d\n", k);
+				printf("gr :");
 				ilist_print(gr);
+				printf("clique :");
+				ilist_print(clique);
+				printf("----------------------------------------------\n");
+				printf("----------------------------------------------\n");
 				if (k == 2)
 				{
 								int size;
@@ -208,45 +216,53 @@ void listing(mgraph_p g, ilist gr, ilist clique, int k, int* res)
 								ilist inter;
 								ilist nclique;
 								/*  first step of rec */
-								if (clique == NULL)
+/* 								if (clique == NULL)
+ * 								{
+ * 												for(i=0; i<g->n; i++)
+ * 												{
+ * 																inter = ilist_copy(g->v[i]->l);
+ * 																
+ * 																if (inter != NULL)
+ * 																{
+ * 																				nclique = ilist_new(i);
+ * 																				listing(g, inter, nclique, k-1, res);
+ * 																}
+ * 																else 
+ * 																				ilist_free(inter);
+ * 												}
+ * 												
+ * 								}
+ * 
+ * 
+ * 								else
+ * 								{
+ */
+								while (it != NULL)
 								{
-												for(i=0; i<g->n; i++)
-												{
-																inter = ilist_copy(g->v[i]->l);
-																
-																if (inter != NULL)
-																{
-																				nclique = ilist_new(i);
-																				listing(g, inter, nclique, k-1, res);
-																}
-																else 
-																				ilist_free(inter);
-												}
+
+												inter = ilist_inter(gr, g->v[it->val]->l);
 												
-								}
-
-								else
-								{
-												while (it != NULL)
+												if (inter != NULL)
 												{
-																printf("it->val = %d\n", it->val); 
-																inter = ilist_inter(gr, g->v[it->val]->l);
-																printf("inter:\n");
-																ilist_print(inter);
+																nclique = ilist_add(ilist_copy(clique), it->val);
 																
-																if (inter != NULL)
-																{
-																				nclique = ilist_add(ilist_copy(clique), it->val);
-																				printf("nclique :\n");
-																				ilist_print(nclique);
-																				listing(g, inter, nclique, k-1, res);
-																}
-																else 
-																				ilist_free(inter);
-
-																it = it->next;
+																printf("it->val = %d\n", it->val);
+																printf("inter :");
+																ilist_print(inter);
+																printf("nclique :");
+																ilist_print(nclique);
+																printf("----------------------------------------------\n");
+																printf("----------------------------------------------\n");
+																
+																listing(g, inter, nclique, k-1, res);
 												}
+												else 
+																ilist_free(inter);
+
+												it = it->next;
 								}
+/* 								}
+ */
 				}
 
 				ilist_free(gr);
@@ -257,10 +273,14 @@ int* kdeg(mgraph_p g, int k)
 {
 				int* res = malloc(g->n*sizeof(int));
 				int i;
+				ilist l = NULL;
 				for (i=0; i<g->n; i++)
+				{
 								res[i] = 0;
-
-				listing(g, NULL, NULL, k, res);
+								l = ilist_add(l, i);
+				}
+				printf("size of l : %d\n", ilist_size(l));
+				listing(g, l, NULL, k, res);
 
 				return res;
 }
