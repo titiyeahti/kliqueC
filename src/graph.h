@@ -67,7 +67,7 @@ void graph_print(graph_p g);
  */
 void listing(graph_p g, int* sg, int* clique, int size, int k, int ck, int* kdeg);
 
-/* int* kdeg(graph_p g, int k);
- */
+int* kdeg(graph_p g, int k);
+
 
 #endif   /* ----- #ifndef graph_INC  ----- */

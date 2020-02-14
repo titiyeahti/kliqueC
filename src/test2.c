@@ -21,7 +21,9 @@
 int main(void)
 {
 				FILE* fp;
-				fp = fopen("../examples/zebra", "r");
+				int* deg;
+				int k;
+				fp = fopen("../examples/toto", "r");
 
 				if(!fp)
 								return EXIT_FAILURE;
@@ -30,59 +32,12 @@ int main(void)
 
 				graph_print(g);
 
-				int* t = malloc(g->n*sizeof(int));
-				int k;
-				int kdeg[g->n];
- 				int clique[4];
-
-				for(k=0; k<g->n; k++)
+				for (k=2; k<5; k++)
 				{
-								t[k] = k;
-								kdeg[k] = 0;
+								deg = kdeg(g, k);
+								free(deg);
 				}
 
-				k = 2;
-				listing(g, t, clique, g->n, k, k, kdeg);
-				
-				print(kdeg, g->n);
-
-				t = malloc(g->n*sizeof(int));
-				
-				for(k=0; k<g->n; k++)
-				{
-								t[k] = k;
-								kdeg[k] = 0;
-				}
-
-				k=3;
-				listing(g, t, clique, g->n, k, k, kdeg);
-				print(kdeg, g->n);
-				
-/* 				t = malloc(g->n*sizeof(int));
- * 
- * 				
- * 				for(k=0; k<g->n; k++)
- * 				{
- * 								t[k] = k;
- * 								kdeg[k] = 0;
- * 				}
- * 
- * 				k=4;
- * 				listing(g, t, clique, g->n, k, k, kdeg);
- * 				print(kdeg, g->n);
- * 				
- * 				t = malloc(g->n*sizeof(int));
- * 				
- * 				for(k=0; k<g->n; k++)
- * 				{
- * 								t[k] = k;
- * 								kdeg[k] = 0;
- * 				}
- * 
- * 				k=5;
- * 				listing(g, t, clique, g->n, k, k, kdeg);
- * 				print(kdeg, g->n);
- */
 				graph_free(g);
 
 				return EXIT_SUCCESS;

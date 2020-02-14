@@ -150,12 +150,6 @@ int* inter(int* t1, int* t2, int n1, int n2, int* k)
 				int *res = malloc((*k)*sizeof(int));
 				memcpy(res, t, (*k)*sizeof(int));
 				
-/* 				printf("\n\nINTER :\n");
- * 				print(t1, n1);
- * 				print(t2, n2);
- * 				print(res, *k);
- */
-
 				return res;
 }
 
@@ -193,42 +187,51 @@ void listing(graph_p g, int* sg, int* clique, int size, int k,
 				/* my graph representation is such that stop at k==2 is a pain */
 				if (k==1)
 				{
-								if ((unsigned long int)clique % 2 == 0)
-								{
-												printf("\nKDEG\n");
-												print(kdeg, g->n);
-								}
-
 								for(i=0; i < size; i++)
 												kdeg[sg[i]] ++;
 								
 								for(j=0; j<ck-1; j++)
 												kdeg[clique[j]] += size;
-
-								if ((unsigned long int)clique % 2 == 0)
-								{
-												print(clique, ck-1);
-												print(sg, size);
-												print(kdeg, g->n);
-								}
 				}
 				else 
 				{
 								for(i=0; i<size; i++)
 								{
-												clique[ck-k] = sg[i];
-												int* neigh = g->edges + g->vertices[i];
-												int n2 = g->vertices[i+1] - 
-																g->vertices[i];
+												int cur = sg[i];
+												int* neigh = g->edges + g->vertices[cur];
+												int n2 = g->vertices[cur+1] - 
+																g->vertices[cur];
 												int new_size;
 												int* nsg = inter(sg, neigh, size, n2, &new_size);
-
+												clique[ck-k] = sg[i];
+												
 												if(new_size > 0)
-												{
-																listing(g, nsg, clique, new_size, k-1, ck, kdeg);
-												}
+																listing(g, nsg, clique, new_size, k-1, 
+																								ck, kdeg);
 								}
 				}
 
 				free(sg);
+}
+
+int * kdeg(graph_p g, int k)
+{
+				int* sg = malloc(g->n*sizeof(int));
+				int* deg = malloc(g->n*sizeof(int));
+				int clique[k];
+				int i;
+
+				for(i=0; i<k; i++)
+								clique[i] = -1;
+
+				for (i=0; i<g->n; i++)
+				{
+								sg[i] = i;
+								deg[i] = 0;
+				}
+
+
+				listing(g, sg, clique, g->n, k, k, deg);
+
+				return deg; 
 }

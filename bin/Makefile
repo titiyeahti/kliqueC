@@ -4,6 +4,9 @@ LIBS =
 
 all : test2.out
 
+junk : test2.out
+	./test2.out > junk
+
 test2.out : graph.o $(SRC)test2.c
 	$(CC) $^ -g -o $@ $(LIBS)
 
