@@ -23,7 +23,7 @@ int main(void)
 				FILE* fp;
 				int* deg;
 				int k;
-				fp = fopen("../examples/toto", "r");
+				fp = fopen("../examples/zebra", "r");
 
 				if(!fp)
 								return EXIT_FAILURE;
@@ -32,9 +32,10 @@ int main(void)
 
 				graph_print(g);
 
-				for (k=2; k<5; k++)
+				for (k=2; k<6; k++)
 				{
 								deg = kdeg(g, k);
+								print(deg, g->n);
 								free(deg);
 				}
 

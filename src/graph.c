@@ -18,15 +18,6 @@
 
 #include "graph.h"
 
-void print(int *t, int n)
-{
-				int i;
-				for(i=0; i<n; i++)
-								printf("%d ", t[i]);
-
-				printf("\n");
-}
-
 graph_p graph_from_file(FILE* fd)
 {
 				int n;
@@ -84,8 +75,40 @@ int graph_degre(graph_p g, int i)
 				return g->vertices[i+1] - g->vertices[i];
 }
 
-int* graph_neighbourg(graph_p g, int i);
+void graph_free(graph_p g)
+{
+				free(g->vertices);
+				free(g->edges);
+				free(g);
+}
 
+void graph_print(graph_p g)
+{
+				int i, j;
+				for(i=0; i<g->n; i++)
+				{
+								printf("%d : ", i);
+								int start, stop;
+								start = g->vertices[i];
+								stop = g->vertices[i+1];
+								printf("%d [%d]: ", i, stop - start);
+
+								for(j = start; j < stop; j++)
+												printf("%d ", g->edges[j]);	
+
+								printf("\n");
+				}
+				printf("\n");
+}
+
+void print(int *t, int n)
+{
+				int i;
+				for(i=0; i<n; i++)
+								printf("%d ", t[i]);
+
+				printf("\n");
+}
 
 void quicksort(int* t, int n)
 {
@@ -153,33 +176,73 @@ int* inter(int* t1, int* t2, int n1, int n2, int* k)
 				return res;
 }
 
-void graph_free(graph_p g)
+int ind_id_min(int* t, int* ind, int n)
 {
-				free(g->vertices);
-				free(g->edges);
-				free(g);
+				if (n == 0)
+								exit(EXIT_FAILURE);
+
+				int i;
+				int min; 
+				int id;
+
+				min = t[0];
+				id = 0;
+
+				for(i=0; i<n; i++)
+				{
+								if (ind[i] && t[i]<min)
+								{
+												id = i;
+												min = t[i];
+								}
+				}
+
+				return id;
 }
 
-void graph_print(graph_p g)
+/* here ind is and indicator function 
+ * n  is the size of the input */
+int* ind_inter(int* input, int* ind, int n, int* k)
 {
-				int i, j;
-				for(i=0; i<g->n; i++)
+				int i;
+				int t[n];
+				int* res;
+
+				*k = 0;
+
+				for(i=0; i<n; i++)
 				{
-								printf("%d : ", i);
-								int start, stop;
-								start = g->vertices[i];
-								stop = g->vertices[i+1];
-								printf("%d [%d]: ", i, stop - start);
-
-								for(j = start; j < stop; j++)
-												printf("%d ", g->edges[j]);	
-
-								printf("\n");
+								if (ind[input[i]])
+								{
+												t[*k] = input[i];
+												(*k) ++;
+								}
 				}
+				
+				res = malloc((*k)*sizeof(int));
+				memcpy(res, t, (*k)*sizeof(int));
+
+				return res;
+}
+
+int ind_size(int* ind, int n)
+{
+				int i;
+				int size;
+
+				size = 0;
+
+				for(i=0; i<n; i++)
+				{
+								if(ind[i])
+											 size ++;	
+				}
+
+				return size;
 }
 
 void listing(graph_p g, int* sg, int* clique, int size, int k, 
-								int ck, int* kdeg)
+								int ck, int* deg)
 {
 				int i;
 				int j;
@@ -188,10 +251,10 @@ void listing(graph_p g, int* sg, int* clique, int size, int k,
 				if (k==1)
 				{
 								for(i=0; i < size; i++)
-												kdeg[sg[i]] ++;
+												deg[sg[i]] ++;
 								
 								for(j=0; j<ck-1; j++)
-												kdeg[clique[j]] += size;
+												deg[clique[j]] += size;
 				}
 				else 
 				{
@@ -207,14 +270,98 @@ void listing(graph_p g, int* sg, int* clique, int size, int k,
 												
 												if(new_size > 0)
 																listing(g, nsg, clique, new_size, k-1, 
-																								ck, kdeg);
+																								ck, deg);
 								}
 				}
 
 				free(sg);
 }
 
-int * kdeg(graph_p g, int k)
+void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
+								int ck, int target, int* deg)
+{
+				int i;
+				int j;
+				int flag = 0;
+
+				/* my graph representation is such that stop at k==2 is a pain */
+				if (k==1)
+				{
+								for(j=0; j<size; j++)
+								{
+												if(sg[j] == target)
+												{
+																flag = 1;
+																break;
+												}
+								}
+
+								for(j=0; j< ck; j++)
+								{
+												if(clique[j] == target)
+												{
+																flag = 1;
+																break;
+												}
+								}
+
+								if (flag)
+								{
+												print(deg, g->n);
+												print(sg, size);
+												print(clique, ck);
+												for(i=0; i < size; i++)
+																deg[sg[i]] --;
+												
+												for(j=0; j<ck-1; j++)
+																deg[clique[j]] -= (size);
+								}
+				}
+				else 
+				{
+								for(i=0; i<size; i++)
+								{
+												int cur = sg[i];
+												int* neigh = g->edges + g->vertices[cur];
+												int n2 = g->vertices[cur+1] - 
+																g->vertices[cur];
+												int new_size;
+												int* nsg = inter(sg, neigh, size, n2, &new_size);
+												clique[ck-k] = sg[i];
+
+												/* finding target */
+												for(j=0; j<new_size; j++)
+												{
+																if(nsg[j] == target)
+																{
+																				flag = 1;
+																				break;
+																}
+												}
+
+												for(j=0; j< ck+1-k; j++)
+												{
+																if(clique[j] == target)
+																{
+																				flag = 1;
+																				break;
+																}
+												}
+												
+												if((new_size > 0) && (flag))
+												{
+																printf("k:%d, target:%d, size:%d\n", 
+																								k, target, new_size);
+																
+																remove_listing(g, nsg, clique, new_size, k-1, 
+																								ck, target, deg);
+												}
+								}
+				}
+				free(sg);
+}
+
+int* kdeg(graph_p g, int k)
 {
 				int* sg = malloc(g->n*sizeof(int));
 				int* deg = malloc(g->n*sizeof(int));
@@ -234,4 +381,100 @@ int * kdeg(graph_p g, int k)
 				listing(g, sg, clique, g->n, k, k, deg);
 
 				return deg; 
+}
+
+/* here ind is and indicator function */
+float clique_density(graph_p g, int* ind)
+{
+				int i, j;
+				int n, m;
+				int start, stop;
+				int dest;
+
+				n = 0;
+				m = 0;
+
+				for(i=0; i<g->n; i++)
+				{
+								if(ind[i])
+								{
+												n++;
+												
+												start = g->vertices[i];
+												stop = g->vertices[i+1];
+
+												for(j=start; j<stop; j++)
+												{
+																dest = g->edges[j];
+
+																if(ind[dest])
+																				m++;
+												}
+								}
+				}
+
+				return (float) 2.*m / ((n-1)*n);
+}
+
+int* quasi_clique(graph_p g, int s, int k)
+{
+				int* deg;
+				int* neigh;
+				int* sg;
+				int i, j, id;
+				int size, size2;
+				int ind[g->n];
+				int* ind_b;
+				int density, density_b;
+				int clique[k];
+
+				ind_b = malloc(g->n*sizeof(int));
+
+				for(i=0; i<g->n; i++)
+				{
+								ind[i] = 1;
+								ind_b[i] = 1;
+				}
+
+				density = clique_density(g, ind);
+				density_b = density;
+
+				deg = kdeg(g, k);
+
+				for(i=g->n; i>s; i--)
+				{
+								id = ind_id_min(deg, ind, g->n);
+								
+/* 								printf("\n\nid : %d\n", id);
+ * 								print(ind, g->n);
+ * 								print(deg, g->n);
+ */
+								/* removing cliques */
+								for(j=0; j<id+1; j++)
+								{
+												clique[0] = j;
+
+												size = g->vertices[j+1] - g->vertices[j];
+												neigh = g->edges + g->vertices[j];
+
+												sg = ind_inter(neigh, ind, size, &size2);
+
+												remove_listing(g, sg, clique, size2, k-1, k, id, deg);
+								}
+
+								ind[id] = 0;
+								/* adjusting clique density */
+								density = clique_density(g, ind);
+
+								/* update the best */
+								if(density > density_b)
+								{
+												memcpy(ind_b, ind, g->n*sizeof(int));
+												density_b = density;
+												
+												if (density == 1.)
+																break;
+								}
+				}
+				return ind_b;
 }
