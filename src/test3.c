@@ -38,15 +38,12 @@ int main(int argc, char** argv)
 
 				graph_p g = graph_from_file(fp);
 
-				graph_print(g);
-
 				printf("%% k size density time\n");
-				for (k=2; k<3; k++)
+				for (k=2; k<5; k++)
 				{
 								t1 = clock();
 								ind = quasi_clique(g, S, k);
 								t2 = clock();
-								print(ind, g->n);
 								printf("%d %d %f %f\n", 
 																k, ind_size(ind, g->n), 
 																clique_density(g, ind),

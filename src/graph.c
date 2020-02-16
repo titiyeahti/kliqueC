@@ -87,7 +87,6 @@ void graph_print(graph_p g)
 				int i, j;
 				for(i=0; i<g->n; i++)
 				{
-								printf("%d : ", i);
 								int start, stop;
 								start = g->vertices[i];
 								stop = g->vertices[i+1];
@@ -296,25 +295,31 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 												}
 								}
 
-								for(j=0; j< ck; j++)
+								for(j=0; j<ck-1; j++)
 								{
 												if(clique[j] == target)
 												{
-																flag = 1;
+																flag = 2;
 																break;
 												}
 								}
 
 								if (flag)
 								{
-												print(deg, g->n);
-												print(sg, size);
-												print(clique, ck);
-												for(i=0; i < size; i++)
-																deg[sg[i]] --;
-												
-												for(j=0; j<ck-1; j++)
-																deg[clique[j]] -= (size);
+												if(flag == 2)
+												{
+																for(i=0; i < size; i++)
+																				deg[sg[i]] --;
+																
+																for(j=0; j<ck-1; j++)
+																				deg[clique[j]] -= (size);
+												}
+												else 
+												{
+																deg[target] --;
+																for(j=0; j<ck-1; j++)
+																				deg[clique[j]] --;
+												}
 								}
 				}
 				else 
@@ -327,9 +332,8 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 																g->vertices[cur];
 												int new_size;
 												int* nsg = inter(sg, neigh, size, n2, &new_size);
-												clique[ck-k] = sg[i];
+												clique[ck-k] = cur;
 
-												/* finding target */
 												for(j=0; j<new_size; j++)
 												{
 																if(nsg[j] == target)
@@ -349,13 +353,8 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 												}
 												
 												if((new_size > 0) && (flag))
-												{
-																printf("k:%d, target:%d, size:%d\n", 
-																								k, target, new_size);
-																
 																remove_listing(g, nsg, clique, new_size, k-1, 
 																								ck, target, deg);
-												}
 								}
 				}
 				free(sg);
@@ -425,7 +424,7 @@ int* quasi_clique(graph_p g, int s, int k)
 				int size, size2;
 				int ind[g->n];
 				int* ind_b;
-				int density, density_b;
+				float density, density_b;
 				int clique[k];
 
 				ind_b = malloc(g->n*sizeof(int));
@@ -441,25 +440,28 @@ int* quasi_clique(graph_p g, int s, int k)
 
 				deg = kdeg(g, k);
 
+				/*-----------------------------------------------------------------------------
+				 *  UNSAFE : Do not trust the code below.
+				 *-----------------------------------------------------------------------------*/
+
 				for(i=g->n; i>s; i--)
 				{
+								/* la */
 								id = ind_id_min(deg, ind, g->n);
-								
-/* 								printf("\n\nid : %d\n", id);
- * 								print(ind, g->n);
- * 								print(deg, g->n);
- */
+
 								/* removing cliques */
 								for(j=0; j<id+1; j++)
 								{
-												clique[0] = j;
+												if(ind[j])
+												{
+																clique[0] = j;
+																size = g->vertices[j+1] - g->vertices[j];
+																neigh = g->edges + g->vertices[j];
 
-												size = g->vertices[j+1] - g->vertices[j];
-												neigh = g->edges + g->vertices[j];
+																sg = ind_inter(neigh, ind, size, &size2);
 
-												sg = ind_inter(neigh, ind, size, &size2);
-
-												remove_listing(g, sg, clique, size2, k-1, k, id, deg);
+																remove_listing(g, sg, clique, size2, k-1, k, id, deg);
+												}
 								}
 
 								ind[id] = 0;
