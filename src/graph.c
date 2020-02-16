@@ -54,6 +54,10 @@ graph_p graph_from_file(FILE* fd)
 												g->vertices[it] ++;
 								
 								error = fscanf(fd, "%d %d", &i, &j);
+
+								if (g->vertices[n] % 1024 == 0)
+												printf("%d\n", g->vertices[n]);
+
 				}
 
 				if(m != g->vertices[n])

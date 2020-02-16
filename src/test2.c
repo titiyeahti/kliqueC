@@ -23,19 +23,19 @@ int main(void)
 				FILE* fp;
 				int* deg;
 				int k;
-				fp = fopen("../examples/zebra", "r");
+				fp = fopen("../examples/amazon", "r");
 
 				if(!fp)
 								return EXIT_FAILURE;
 
 				graph_p g = graph_from_file(fp);
+				
+				printf("lu\n");
 
-				graph_print(g);
-
-				for (k=2; k<6; k++)
+				for (k=2; k<5; k++)
 				{
+								printf("%d\n",k);
 								deg = kdeg(g, k);
-								print(deg, g->n);
 								free(deg);
 				}
 

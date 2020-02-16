@@ -2,10 +2,7 @@ CC = gcc -Wall -Wextra -ansi
 SRC = ../src/
 LIBS =
 
-all : test3.out unitest.out
-
-junk : test2.out
-	./test2.out > junk
+all : test3.out unitest.out test2.out
 
 unitest.out : graph.o $(SRC)unitest.c
 	$(CC) $^ -g -o $@ $(LIBS)
