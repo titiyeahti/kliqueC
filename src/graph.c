@@ -22,14 +22,17 @@ graph_p graph_from_file(FILE* fd)
 {
 				int n;
 				int m;
-				int error;
-				int i, j, it;
+				int i, j;
+				int count, temp, error;
 
 				char trash[64];
 				char trash2[64];
 
 				error = fscanf(fd, "%% %s %s", trash, trash2);
 				error = fscanf(fd, "%% %d %d %d", &m, &n, &i);
+
+				if (error != 3)
+								exit(EXIT_FAILURE);
 
 				graph_p g = malloc(sizeof(struct graph));
 				g->n = n;
@@ -38,27 +41,45 @@ graph_p graph_from_file(FILE* fd)
 
 				for(i=0; i<n+1; i++)
 								g->vertices[i] = 0;
-				
-				error = fscanf(fd, "%d %d", &i, &j);
-				while(error != EOF)
+			
+
+				/*-----------------------------------------------------------------------------
+				 *  Vertices 
+				 *-----------------------------------------------------------------------------*/
+				i = 0;
+				count = 0;
+				while(fscanf(fd, "%d %d", &temp, &j) != EOF)
 				{
-								if(i >= j)
-												printf("warning: graph_from_file %s:%d, %d>=%d \n", 
-																__FILE__, __LINE__, i, j);
+								temp--;
+								if (temp != i)
+								{
+												for (j=i+1; j<=temp; j++)
+																g->vertices[j] = count;
 
-								/* i because the end of the outgoing edges from i is stored in 
-								 * at vertices[i+1] */
-								g->edges[g->vertices[i]] = j-1;
-
-								for(it = i; it < n+1; it ++)
-												g->vertices[it] ++;
-								
-								error = fscanf(fd, "%d %d", &i, &j);
-
-								if (g->vertices[n] % 1024 == 0)
-												printf("%d\n", g->vertices[n]);
-
+												i = temp;
+								}
+								count++;
 				}
+				
+				for (j=i+1; j<=n; j++)
+								g->vertices[j] = count;
+
+				/*-----------------------------------------------------------------------------*/
+
+				rewind(fd);
+				error = fscanf(fd, "%% %s %s", trash, trash2);
+				error = fscanf(fd, "%% %d %d %d", &m, &n, &i);
+
+				/*-----------------------------------------------------------------------------
+				 *  Edges
+				 *-----------------------------------------------------------------------------*/
+				count = 0;
+				while(fscanf(fd, "%d %d", &i, &j) != EOF)
+				{
+								g->edges[count] = j-1;
+								count++;
+				}
+				/*-----------------------------------------------------------------------------*/
 
 				if(m != g->vertices[n])
 								printf("error: graph_from_file %s:%d, number of edges is not valid %d!=%d\n", 
@@ -445,7 +466,7 @@ int* quasi_clique(graph_p g, int s, int k)
 				deg = kdeg(g, k);
 
 				/*-----------------------------------------------------------------------------
-				 *  UNSAFE : Do not trust the code below.
+				 *  SAFE : You can trust the code below.
 				 *-----------------------------------------------------------------------------*/
 
 				for(i=g->n; i>s; i--)

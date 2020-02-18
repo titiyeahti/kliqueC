@@ -22,22 +22,23 @@ int main(void)
 {
 				FILE* fp;
 				int* deg;
-				int k;
-				fp = fopen("../examples/amazon", "r");
+				int es;
+				fp = fopen("../examples/skitter", "r");
 
 				if(!fp)
 								return EXIT_FAILURE;
 
 				graph_p g = graph_from_file(fp);
 				
-				printf("lu\n");
-
-				for (k=2; k<5; k++)
-				{
-								printf("%d\n",k);
-								deg = kdeg(g, k);
-								free(deg);
-				}
+/* 				printf("lu\n");
+ * 
+ * 				for (k=2; k<5; k++)
+ * 				{
+ * 								printf("%d\n",k);
+ * 								deg = kdeg(g, k);
+ * 								free(deg);
+ * 				}
+ */
 
 				graph_free(g);
 
