@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 				clock_t t1, t2;
 				
 				if(argc != 2)
-								fp = fopen("../examples/zebra", "r");
+								fp = fopen("../examples/amazon", "r");
 				else 
 								fp = fopen(argv[1], "r");
 

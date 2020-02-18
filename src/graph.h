@@ -91,7 +91,8 @@ int ind_size(int* ind, int);
  *  							k is decreasing during the recursives calls but ck remains constant
  * =====================================================================================
  */
-void listing(graph_p g, int* sg, int* clique, int size, int k, int ck, int* deg);
+void listing(graph_p g, int* sg, int* clique, int size, int k, int ck, 
+								int to_free, int* deg);
 
 void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
 								int ck, int target, int* deg);

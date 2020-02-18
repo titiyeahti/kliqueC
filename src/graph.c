@@ -265,11 +265,14 @@ int ind_size(int* ind, int n)
 				return size;
 }
 
-void listing(graph_p g, int* sg, int* clique, int size, int k, 
-								int ck, int* deg)
+void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
+							 int to_free, int* deg)
 {
-				int i;
-				int j;
+				int i, j;
+				int new_size, n2;
+				int cur, tf;
+				int* neigh;
+				int* nsg;
 
 				/* my graph representation is such that stop at k==2 is a pain */
 				if (k==1)
@@ -284,21 +287,38 @@ void listing(graph_p g, int* sg, int* clique, int size, int k,
 				{
 								for(i=0; i<size; i++)
 								{
-												int cur = sg[i];
-												int* neigh = g->edges + g->vertices[cur];
-												int n2 = g->vertices[cur+1] - 
+												if (k != ck)
+																cur = sg[i];
+												else 
+																cur = i;
+
+												neigh = g->edges + g->vertices[cur];
+												n2 = g->vertices[cur+1] - 
 																g->vertices[cur];
-												int new_size;
-												int* nsg = inter(sg, neigh, size, n2, &new_size);
-												clique[ck-k] = sg[i];
+
+												clique[ck-k] = cur;
+
+												if(k != ck)
+												{
+																nsg = inter(sg, neigh, size, n2, &new_size);
+																tf = 1;
+												}
+												else
+												{
+																nsg = neigh;
+																new_size = n2;
+																tf = 0;
+												}
+												
 												
 												if(new_size > 0)
 																listing(g, nsg, clique, new_size, k-1, 
-																								ck, deg);
+																								ck, tf, deg);
 								}
 				}
-
-				free(sg);
+				
+				if (to_free)
+								free(sg);
 }
 
 void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
@@ -331,6 +351,7 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 
 								if (flag)
 								{
+												/* target is in clique */
 												if(flag == 2)
 												{
 																for(i=0; i < size; i++)
@@ -339,6 +360,7 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 																for(j=0; j<ck-1; j++)
 																				deg[clique[j]] -= (size);
 												}
+												/* target is not in clique */
 												else 
 												{
 																deg[target] --;
@@ -382,12 +404,12 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 																								ck, target, deg);
 								}
 				}
+
 				free(sg);
 }
 
 int* kdeg(graph_p g, int k)
 {
-				int* sg = malloc(g->n*sizeof(int));
 				int* deg = malloc(g->n*sizeof(int));
 				int clique[k];
 				int i;
@@ -395,14 +417,7 @@ int* kdeg(graph_p g, int k)
 				for(i=0; i<k; i++)
 								clique[i] = -1;
 
-				for (i=0; i<g->n; i++)
-				{
-								sg[i] = i;
-								deg[i] = 0;
-				}
-
-
-				listing(g, sg, clique, g->n, k, k, deg);
+				listing(g, NULL, clique, g->n, k, k, 0, deg);
 
 				return deg; 
 }
