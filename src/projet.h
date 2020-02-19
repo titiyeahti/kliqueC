@@ -30,8 +30,8 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 
 int* kdeg(graph_p g, int k);
 
-double clique_density(graph_p g, int* ind);
+double clique_density(graph_p g, uchar* ind);
 
-int* quasi_clique(graph_p g, int s, int k);
+uchar* quasi_clique(graph_p g, int s, int k);
 
 #endif   /* ----- #ifndef projet_INC  ----- */

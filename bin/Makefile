@@ -2,18 +2,18 @@ CC = gcc -Wall -Wextra -ansi
 SRC = ../src/
 LIBS =
 
-all : test3.out unitest.out test2.out
+all : test2.out
 
-unitest.out : graph.o $(SRC)unitest.c
+test2.out : projet.o graph.o array.o $(SRC)test2.c
 	$(CC) $^ -g -o $@ $(LIBS)
 
-test3.out : graph.o $(SRC)test3.c
+test3.out : projet.o graph.o array.o $(SRC)test3.c
 	$(CC) $^ -g -o $@ $(LIBS)
 
-test2.out : graph.o $(SRC)test2.c
+test_graph.out : array.o graph.o $(SRC)test_graph.c
 	$(CC) $^ -g -o $@ $(LIBS)
 
-test.out : ilist.o mgraph.o $(SRC)test.c
+test_array.out : array.o $(SRC)test_array.c
 	$(CC) $^ -g -o $@ $(LIBS)
 
 %.o : $(SRC)%.c $(SRC)%.h

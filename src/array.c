@@ -67,6 +67,26 @@ int contains(int* t, int i, int n)
 				return 0;
 }
 
+int dich_contains(int* t, int i, int n)
+{
+				if (n == 0)
+								return 0;
+
+				if (n == 1)
+								return t[0] == i;
+							
+				int spot;
+				spot = n>>1;
+
+				if(t[spot] == i)
+								return 1;
+				
+				if(t[spot] < i)
+								return dich_contains(t, i, spot - 1);
+				else 
+								return dich_contains(t+spot+1, i, n - spot);
+}
+
 int* inter(int* t1, int* t2, int n1, int n2, int* k)
 {
 				int i, j;
@@ -103,6 +123,8 @@ int* inter(int* t1, int* t2, int n1, int n2, int* k)
 				
 				return res;
 }
+
+
 
 /* to TEST */
 int* concat(int* t1, int* t2, int n1, int n2)

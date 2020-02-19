@@ -15,16 +15,14 @@
  *
  * =====================================================================================
  */
-
-#include "graph.h"
-#include "time.h"
-
 #define S 10
+#include "projet.h"
+#include <time.h>
 
 int main(int argc, char** argv)
 {
 				FILE* fp;
-				int* ind;
+				uchar* ind;
 				int k;
 				clock_t t1, t2;
 				

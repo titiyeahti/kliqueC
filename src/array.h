@@ -37,6 +37,9 @@ void quicksort(int* t, int n);
 /* O(n) */
 int contains(int* t, int i, int n);
 
+/* O(logn) */
+int dich_contains(int* t, int i, int n);
+
 /* Malloc *
  * O(n1+n2) */
 int* inter(int* t1, int* t2, int n1, int n2, int* k);
@@ -52,9 +55,6 @@ int* concat(int* t1, int* t2, int n1, int n2);
  * always be of size n (the number of vertices) and every int we consider 
  * is less than n */
 
-/* O(n) */
-int ind_id_min(int* t, uchar* ind, int n);
-
 /* O(1) */
 int ind_contains(uchar* ind, int i);
 
@@ -63,6 +63,9 @@ void ind_on(uchar* ind, int i);
 
 /* O(1) */
 void ind_off(uchar* ind, int i); 
+
+/* O(n) */
+int ind_id_min(int* t, uchar* ind, int n);
 
 /* Malloc */
 /* O(n) */

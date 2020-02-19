@@ -39,7 +39,7 @@ int graph_degre(graph_p g, int i);
 
 /* NO MALLOC be CAREFULL
  * O(1) */
-int* graph_neighbourg(graph_p g, int i, int* k);
+int* graph_neighbors(graph_p g, int i, int* k);
 
 /* counting incomming edges to vertices
  * cummulative sum over vertices
@@ -49,9 +49,9 @@ graph_p graph_reverse(graph_p g);
 
 /* Malloc
  * returns the concat of D_rev(i) and D_g(i)
- * neighbourg in g are bigger
+ * neighbors in g are bigger
  * O(concat) */
-int* graph_all_neighbourg(graph_p g, graph_p rev, int i, int* k); 
+int* graph_all_neighbors(graph_p g, graph_p rev, int i, int* k); 
 
 void graph_free(graph_p g);
 

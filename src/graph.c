@@ -94,7 +94,7 @@ int graph_degre(graph_p g, int i)
 				return g->vertices[i+1] - g->vertices[i];
 }
 
-int* graph_neighbourg(graph_p g, int i, int *k)
+int* graph_neighbors(graph_p g, int i, int *k)
 {
 				*k = graph_degre(g, i);
 				return g->edges + g->vertices[i];
@@ -144,15 +144,15 @@ graph_p graph_reverse(graph_p g)
 				return rev;
 }
 
-int* graph_all_neighbourg(graph_p g, graph_p rev, int i, int* k)
+int* graph_all_neighbors(graph_p g, graph_p rev, int i, int* k)
 {
 				int* res;
 				int n1, n2;
 				int* v1;
 				int* v2;
 
-				v1 = graph_neighbourg(rev, i, &n1);
-				v2 = graph_neighbourg(g, i, &n2);
+				v1 = graph_neighbors(rev, i, &n1);
+				v2 = graph_neighbors(g, i, &n2);
 
 				res = concat(v1, v2, n1, n2);
 				*k = n1 + n2;

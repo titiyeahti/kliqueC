@@ -15,7 +15,8 @@
  *
  * =====================================================================================
  */
-
+#include <time.h>
+#include "projet.h"
 
 void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 							 int to_free, int* deg)
@@ -44,10 +45,7 @@ void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 												else 
 																cur = i;
 
-												neigh = g->edges + g->vertices[cur];
-												n2 = g->vertices[cur+1] - 
-																g->vertices[cur];
-
+												neigh = graph_neighbors(g, cur, &n2);
 												clique[ck-k] = cur;
 
 												if(k != ck)
@@ -76,30 +74,18 @@ void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
 								int ck, int target, int* deg)
 {
-				int i;
-				int j;
+				int* neigh;
+				int* nsg;
+				int i, j;
+				int cur;
+				int n2, new_size;
 				int flag = 0;
 
 				/* my graph representation is such that stop at k==2 is a pain */
 				if (k==1)
 				{
-								for(j=0; j<size; j++)
-								{
-												if(sg[j] == target)
-												{
-																flag = 1;
-																break;
-												}
-								}
-
-								for(j=0; j<ck-1; j++)
-								{
-												if(clique[j] == target)
-												{
-																flag = 2;
-																break;
-												}
-								}
+								flag += contains(sg, target, size);
+								flag += contains(clique, target, ck-1) << 1;
 
 								if (flag)
 								{
@@ -125,38 +111,19 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 				{
 								for(i=0; i<size; i++)
 								{
-												int cur = sg[i];
-												int* neigh = g->edges + g->vertices[cur];
-												int n2 = g->vertices[cur+1] - 
-																g->vertices[cur];
-												int new_size;
-												int* nsg = inter(sg, neigh, size, n2, &new_size);
+												cur = sg[i];
+												neigh = graph_neighbors(g, i, &n2);
+												nsg = inter(sg, neigh, size, n2, &new_size);
 												clique[ck-k] = cur;
 
-												for(j=0; j<new_size; j++)
-												{
-																if(nsg[j] == target)
-																{
-																				flag = 1;
-																				break;
-																}
-												}
-
-												for(j=0; j< ck+1-k; j++)
-												{
-																if(clique[j] == target)
-																{
-																				flag = 1;
-																				break;
-																}
-												}
+												flag += contains(sg, target, size);
+												flag += contains(clique, target, ck-k+1) << 1;
 												
 												if((new_size > 0) && (flag))
 																remove_listing(g, nsg, clique, new_size, k-1, 
 																								ck, target, deg);
 								}
 				}
-
 				free(sg);
 }
 
@@ -175,11 +142,12 @@ int* kdeg(graph_p g, int k)
 }
 
 /* here ind is and indicator function */
-double clique_density(graph_p g, int* ind)
+double clique_density(graph_p g, uchar* ind)
 {
+				int* neigh;
+				int size;
 				int i, j;
 				int n, m;
-				int start, stop;
 				int dest;
 				double res;
 
@@ -188,24 +156,23 @@ double clique_density(graph_p g, int* ind)
 
 				for(i=0; i<g->n; i++)
 				{
-								if(ind[i])
+								if(ind_contains(ind, i))
 								{
 												n++;
 												
-												start = g->vertices[i];
-												stop = g->vertices[i+1];
-
-												for(j=start; j<stop; j++)
+												neigh = graph_neighbors(g, i, &size);
+												for(j=0; j<size; j++)
 												{
-																dest = g->edges[j];
+																dest = neigh[j];
 
-																if(ind[dest])
+																if(ind_contains(ind, dest))
 																				m++;
 												}
 								}
 				}
 
 				res = (double) 2.*m / ((double)(n-1)*(double)n);
+				
 				if (res < 0.)
 								printf("(n, m) = (%d, %d) clique_density = %f\n", 
 																n, m, res);
@@ -213,25 +180,28 @@ double clique_density(graph_p g, int* ind)
 				return res;
 }
 
-int* quasi_clique(graph_p g, int s, int k)
+uchar* quasi_clique(graph_p g, int s, int k)
 {
 				clock_t t1;
-				int* deg;
-				int* neigh;
-				int* sg;
-				int i, j, l, id;
-				int size, size2;
-				int ind[g->n];
-				int* ind_b;
+				int i, id;
+				int neigh_size, sg_size, ind_size;
 				double density, density_b;
+
+				ind_size = ((g->n) >> 3) + 1;
+
+				/* Some bits in the inds may be unused */
+				int *deg, *neigh, *sg;
 				int clique[k];
+				uchar ind[ind_size];
+				uchar* ind_b;
+				graph_p rev;
+				
+				ind_b = malloc(ind_size*sizeof(uchar));
 
-				ind_b = malloc(g->n*sizeof(int));
-
-				for(i=0; i<g->n; i++)
+				for(i=0; i<ind_size; i++)
 				{
-								ind[i] = 1;
-								ind_b[i] = 1;
+								ind[i] = 255;
+								ind_b[i] = 255;
 				}
 
 				density = clique_density(g, ind);
@@ -240,65 +210,46 @@ int* quasi_clique(graph_p g, int s, int k)
 				t1 = clock();
 				deg = kdeg(g, k);
 				t1 = clock() - t1;
+				printf("kdeg : %f s\n", (float)t1/CLOCKS_PER_SEC);
 
-				printf("kdeg time : %f\n", (float)t1/CLOCKS_PER_SEC);
-
-				/*-----------------------------------------------------------------------------
-				 *  SAFE : You can trust the code below.
-				 *-----------------------------------------------------------------------------*/
+				t1 = clock();
+				rev = graph_reverse(g);
+				t1 = clock() - t1;
+				printf("reverse graph : %f s\n", (float)t1/CLOCKS_PER_SEC);
 
 				for(i=g->n; i>s; i--)
 				{
-								/* la */
 								id = ind_id_min(deg, ind, g->n);
 
-								t1 = clock();
-								/* removing cliques */
-								for(j=0; j<id+1; j++)
+								/* removnig clique if needed */
+								if(deg[id] != 0)
 								{
-												if(ind[j])
-												{
-																clique[0] = j;
-																size = g->vertices[j+1] - g->vertices[j];
-																neigh = g->edges + g->vertices[j];
+												if (i&255 == 0)
+																printf("id : %d\n", id);
 
-																sg = ind_inter(neigh, ind, size, &size2);
+												neigh = graph_all_neighbors(g, rev, id, &neigh_size);
+												sg = ind_inter(neigh, ind, neigh_size, &sg_size);
 
-																int flag = (id == j);
-																for(l=0; l<size2; l++)
-																{
-																				if(flag || neigh[l] == id)
-																				{
-																								flag = 1;
-																								break;
-																				}
-																}
-																
-																if (flag)
-																				remove_listing(g, sg, clique, size2, k-1, k, id, deg);
-												}
-
+												remove_listing(g, sg, clique, sg_size, k, k, id, deg);
 								}
-								
-								t1 = clock() - t1;
 
-								ind[id] = 0;
+								/* updating the indicator */
+								ind_off(ind, id);
 
 								/* adjusting clique density */
 								density = clique_density(g, ind);
 								
-/* 								printf("id = %d : %f, %f\n", id, (float)t1/CLOCKS_PER_SEC, density);
- */
-
 								/* update the best */
 								if(density > density_b)
 								{
-												memcpy(ind_b, ind, g->n*sizeof(int));
+												memcpy(ind_b, ind, ind_size*sizeof(uchar));
 												density_b = density;
 												
 												if (density == 1.)
 																break;
 								}
 				}
+
+				graph_free(rev);
 				return ind_b;
 }
