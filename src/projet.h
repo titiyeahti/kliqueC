@@ -26,9 +26,11 @@ void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 								int to_free, int* deg);
 
 void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
-								int ck, int target, int* deg);
+								int ck, int* deg);
 
 int* kdeg(graph_p g, int k);
+
+double density(int n, int m);
 
 double clique_density(graph_p g, uchar* ind);
 

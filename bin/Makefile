@@ -2,7 +2,7 @@ CC = gcc -Wall -Wextra -ansi
 SRC = ../src/
 LIBS =
 
-all : test2.out
+all : test3.out
 
 test2.out : projet.o graph.o array.o $(SRC)test2.c
 	$(CC) $^ -g -o $@ $(LIBS)

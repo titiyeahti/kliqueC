@@ -22,7 +22,7 @@ void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 							 int to_free, int* deg)
 {
 				int i, j;
-				int new_size, n2;
+				int nsg_size, neigh_size;
 				int cur, tf;
 				int* neigh;
 				int* nsg;
@@ -45,24 +45,24 @@ void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 												else 
 																cur = i;
 
-												neigh = graph_neighbors(g, cur, &n2);
+												neigh = graph_neighbors(g, cur, &neigh_size);
 												clique[ck-k] = cur;
 
 												if(k != ck)
 												{
-																nsg = inter(sg, neigh, size, n2, &new_size);
+																nsg = inter(sg, neigh, size, neigh_size, &nsg_size);
 																tf = 1;
 												}
 												else
 												{
 																nsg = neigh;
-																new_size = n2;
+																nsg_size = neigh_size;
 																tf = 0;
 												}
 												
 												
-												if(new_size > 0)
-																listing(g, nsg, clique, new_size, k-1, 
+												if(nsg_size > 0)
+																listing(g, nsg, clique, nsg_size, k-1, 
 																								ck, tf, deg);
 								}
 				}
@@ -71,57 +71,38 @@ void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 								free(sg);
 }
 
+/* Target is in clique, more precisely clique[0] = target */
 void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
-								int ck, int target, int* deg)
+								int ck, int* deg)
 {
 				int* neigh;
 				int* nsg;
 				int i, j;
 				int cur;
-				int n2, new_size;
-				int flag = 0;
+				int neigh_size, nsg_size;
 
 				/* my graph representation is such that stop at k==2 is a pain */
 				if (k==1)
 				{
-								flag += contains(sg, target, size);
-								flag += contains(clique, target, ck-1) << 1;
-
-								if (flag)
-								{
-												/* target is in clique */
-												if(flag == 2)
-												{
-																for(i=0; i < size; i++)
-																				deg[sg[i]] --;
-																
-																for(j=0; j<ck-1; j++)
-																				deg[clique[j]] -= (size);
-												}
-												/* target is not in clique */
-												else 
-												{
-																deg[target] --;
-																for(j=0; j<ck-1; j++)
-																				deg[clique[j]] --;
-												}
-								}
+								for(i=0; i < size; i++)
+												deg[sg[i]] --;
+								
+								for(j=0; j<ck-1; j++)
+												deg[clique[j]] -= size;
 				}
 				else 
 				{
 								for(i=0; i<size; i++)
 								{
 												cur = sg[i];
-												neigh = graph_neighbors(g, i, &n2);
-												nsg = inter(sg, neigh, size, n2, &new_size);
-												clique[ck-k] = cur;
+												neigh = graph_neighbors(g, i, &neigh_size);
+												nsg = inter(sg, neigh, size, neigh_size, &nsg_size);
 
-												flag += contains(sg, target, size);
-												flag += contains(clique, target, ck-k+1) << 1;
+												clique[ck-k] = cur;
 												
-												if((new_size > 0) && (flag))
-																remove_listing(g, nsg, clique, new_size, k-1, 
-																								ck, target, deg);
+												if(nsg_size > 0)
+																remove_listing(g, nsg, clique, nsg_size, k-1, 
+																								ck, deg);
 								}
 				}
 				free(sg);
@@ -141,6 +122,11 @@ int* kdeg(graph_p g, int k)
 				return deg; 
 }
 
+double density(int n, int m)
+{
+				return (double) 2.*m / ((double)(n-1)*(double)n);
+}
+
 /* here ind is and indicator function */
 double clique_density(graph_p g, uchar* ind)
 {
@@ -149,7 +135,6 @@ double clique_density(graph_p g, uchar* ind)
 				int i, j;
 				int n, m;
 				int dest;
-				double res;
 
 				n = 0;
 				m = 0;
@@ -170,22 +155,18 @@ double clique_density(graph_p g, uchar* ind)
 												}
 								}
 				}
-
-				res = (double) 2.*m / ((double)(n-1)*(double)n);
 				
-				if (res < 0.)
-								printf("(n, m) = (%d, %d) clique_density = %f\n", 
-																n, m, res);
-
-				return res;
+				return density(n, m);
 }
 
 uchar* quasi_clique(graph_p g, int s, int k)
 {
-				clock_t t1;
+				clock_t t1, t2;
+				float t_rest, t_ind, t_density; 
 				int i, id;
 				int neigh_size, sg_size, ind_size;
-				double density, density_b;
+				int n, m;
+				double rho, rho_b;
 
 				ind_size = ((g->n) >> 3) + 1;
 
@@ -203,49 +184,50 @@ uchar* quasi_clique(graph_p g, int s, int k)
 								ind[i] = 255;
 								ind_b[i] = 255;
 				}
+				
+				n = g->n;
+				m = g->vertices[n];
+				rho = density(n, m);
+				rho_b = rho;
 
-				density = clique_density(g, ind);
-				density_b = density;
-
-				t1 = clock();
 				deg = kdeg(g, k);
-				t1 = clock() - t1;
-				printf("kdeg : %f s\n", (float)t1/CLOCKS_PER_SEC);
-
-				t1 = clock();
+				
 				rev = graph_reverse(g);
-				t1 = clock() - t1;
-				printf("reverse graph : %f s\n", (float)t1/CLOCKS_PER_SEC);
 
 				for(i=g->n; i>s; i--)
 				{
+								/* O(n) -> O(logn) with a sorting like algo */
 								id = ind_id_min(deg, ind, g->n);
-
-								/* removnig clique if needed */
-								if(deg[id] != 0)
-								{
-												if (i&255 == 0)
-																printf("id : %d\n", id);
-
-												neigh = graph_all_neighbors(g, rev, id, &neigh_size);
-												sg = ind_inter(neigh, ind, neigh_size, &sg_size);
-
-												remove_listing(g, sg, clique, sg_size, k, k, id, deg);
-								}
 
 								/* updating the indicator */
 								ind_off(ind, id);
 
+								/* removnig cliques if needed */
+								if(deg[id] != 0)
+								{
+												if ((i&255) == 0)
+																printf("id : %d\n", id);
+
+												clique[0] = id;
+
+												neigh = graph_all_neighbors(g, rev, id, &neigh_size);
+												sg = ind_inter(neigh, ind, neigh_size, &sg_size);
+
+												remove_listing(g, sg, clique, sg_size, k-1, k, deg);
+								}
+
 								/* adjusting clique density */
-								density = clique_density(g, ind);
+								m -= (graph_degre(g, id) + graph_degre(rev, id));
+								n --;
+								rho = density(n, m);
 								
 								/* update the best */
-								if(density > density_b)
+								if(rho > rho_b)
 								{
 												memcpy(ind_b, ind, ind_size*sizeof(uchar));
-												density_b = density;
+												rho_b = rho;
 												
-												if (density == 1.)
+												if (rho_b == 1.)
 																break;
 								}
 				}

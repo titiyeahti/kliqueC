@@ -37,6 +37,7 @@ void quicksort(int* t, int n)
 								j=0;
 								for (i=0; i<n-1; i++)
 								{
+												/* at least as big as te pivot */
 												if (t[i] < t[n-1])
 												{				
 																temp = t[j];
@@ -45,7 +46,6 @@ void quicksort(int* t, int n)
 																j++;
 												}
 								}
-								/* at least as big as te pivot */
 								/*replacing the pivot */
 								temp = t[j];
 								t[j] = t[n-1];
@@ -167,6 +167,64 @@ void ind_off(uchar* ind, int i)
 				ind[spot] &= ~(1<<exp);
 }
 
+void ind_min_at_start(int* t, int* key, uchar* ind, int n)
+{
+				if (n > 0)
+				{
+								/* partitionning */
+								int i, j, temp, flag;
+
+								flag = 0;
+
+								/* selecting a pivot
+								 * O(n) */
+								for(i=0; i<n; i++)
+								{
+												if (ind_contains(ind, i))
+												{
+																temp = t[n-1];
+																t[n-1] = t[i];
+																t[i] = temp;
+																flag = 1;
+																break;
+												}
+								}
+
+								if(!flag)
+												exit(EXIT_FAILURE);
+
+								j=0;
+								/* O(n) */
+								for (i=0; i<n-1; i++)
+								{
+												/* at least as big as te pivot */
+												if (ind_contains(ind, i) && (key[i] < key[n-1]))
+												{				
+																temp = t[j];
+																t[j] = t[i];
+																t[i] = temp;
+																
+																temp = key[j];
+																key[j] = key[i];
+																key[i] = temp;
+
+																j++;
+												}
+								}
+								/*replacing the pivot */
+								temp = t[j];
+								t[j] = t[n-1];
+								t[n-1] = temp;
+
+								temp = key[j];
+								key[j] = key[n-1];
+								key[n-1] = temp;
+
+								quicksort(t, j);
+				}
+}
+
+
 int ind_id_min(int* t, uchar* ind, int n)
 {
 				if (n == 0)
@@ -182,6 +240,9 @@ int ind_id_min(int* t, uchar* ind, int n)
 								{
 												id = i;
 												min = t[i];
+
+												if (min==0)
+																return id;
 								}
 				}
 
