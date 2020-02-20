@@ -20,12 +20,8 @@
 
 int elt_compare(elt e1, elt e2)
 {
-				int c = e1.deg - e2.deg;
-
-				if (c == 0)
-								return e1.id - e2.id;
-				else 
-								return c;
+				return e1.deg - e2.deg 
+								|| e1.id - e2.id;
 }
 
 elt elt_create(int deg, int id)
@@ -81,7 +77,10 @@ avl avl_balance(avl a)
 								if (hg > (hd + 1))
 								{
 												if (g == NULL)
+												{
+																printf("%s:%d\n", __FILE__, __LINE__);
 																exit(EXIT_FAILURE);
+												}
 												else
 												{
 																int hgg, hgd;
@@ -103,7 +102,8 @@ avl avl_balance(avl a)
 																else
 																{
 																				if(gd == NULL)
-																								exit(EXIT_FAILURE);
+																								{printf("%s:%d\n", __FILE__, __LINE__);
+																								exit(EXIT_FAILURE);}
 																				else
 																				{
 																								elt egd;
@@ -126,7 +126,8 @@ avl avl_balance(avl a)
 								if (hd > (hg + 1))
 								{
 												if (d == NULL)
-																exit(EXIT_FAILURE);
+												{printf("%s:%d\n", __FILE__, __LINE__);
+																exit(EXIT_FAILURE);}
 												else
 												{
 																int hdg, hdd;
@@ -139,7 +140,7 @@ avl avl_balance(avl a)
 																hdg = avl_hauteur(dg);
 																hdd = avl_hauteur(dd);
 
-																if (hdd > hdg)
+																if (hdg > hdd)
 																{
 																				free(d);
 																				free(a);
@@ -148,7 +149,8 @@ avl avl_balance(avl a)
 																else
 																{
 																				if(dg == NULL)
-																								exit(EXIT_FAILURE);
+																				{printf("%s:%d\n", __FILE__, __LINE__);
+																								exit(EXIT_FAILURE);}
 																				else
 																				{
 																								elt edg;
@@ -189,9 +191,6 @@ avl avl_add(avl a, elt e)
 								/* if the elt is already there we do not replace it*/
 								if (c == 0)
 												return a;
-								else 
-												free(a);
-
 								if (c < 0)
 												return avl_balance(avl_node(avl_add(g, e), d, e2));
 								else
@@ -225,9 +224,8 @@ avl avl_remove(avl a, elt e)
 								e2 = a->e;
 								g = a->g;
 								d = a->d;
-								c = elt_compare(e, e2);
 
-								free(a);
+								c = elt_compare(e, e2);
 								/* if the elt is already there we do not replace it*/
 								if (c < 0)
 												return avl_balance(avl_node(avl_remove(g, e), d, e2));
@@ -240,6 +238,9 @@ avl avl_remove(avl a, elt e)
 												else
 												{
 																elt e3 = avl_get_min(d);
+																
+																free(a);
+
 																return avl_balance(avl_node(g, avl_remove(d, e3), e3));
 												}
 								}
@@ -249,12 +250,16 @@ avl avl_remove(avl a, elt e)
 /* O(nlogn) */
 avl avl_construct(int* t, int n)
 {
+				printf("n = %d\n",n); 
 				avl res = NULL;
 				int i;
 				elt e;
 
 				for(i=0; i<n; i++)
 				{
+								printf("%d, %d\n", t[i], i);
+								avl_print(res);
+								printf("\n");
 								e = elt_create(t[i], i);
 								res = avl_add(res, e);
 				}

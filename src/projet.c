@@ -73,7 +73,7 @@ void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 
 /* Target is in clique, more precisely clique[0] = target */
 void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
-								int ck, int* deg)
+								int ck, int* deg, avl* a)
 {
 				int* neigh;
 				int* nsg;
@@ -84,11 +84,42 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 				/* my graph representation is such that stop at k==2 is a pain */
 				if (k==1)
 				{
+								elt e;
+
+								/* O(size*logn) */
 								for(i=0; i < size; i++)
+								{
+												e = elt_create(deg[sg[i]], sg[i]);
+												*a = avl_remove(*a, e);
+												
 												deg[sg[i]] --;
-								
+
+												if(deg[sg[i]])
+												{
+																e.deg--;
+																*a = avl_add(*a, e);
+												}
+								}
+
+								/* O((ck-2)logn) */
 								for(j=0; j<ck-1; j++)
-												deg[clique[j]] -= size;
+								{
+												if(j==0)
+																deg[clique[j]] -= size;
+												else
+												{
+																e = elt_create(deg[clique[j]], clique[j]);
+																*a = avl_remove(*a, e);
+																
+																deg[sg[i]] -= size;
+
+																if(deg[sg[i]])
+																{
+																				e.deg -= size;
+																				*a = avl_add(*a, e);
+																}
+												}
+								}
 				}
 				else 
 				{
@@ -102,7 +133,7 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 												
 												if(nsg_size > 0)
 																remove_listing(g, nsg, clique, nsg_size, k-1, 
-																								ck, deg);
+																								ck, deg, a);
 								}
 				}
 				free(sg);
@@ -177,6 +208,10 @@ uchar* quasi_clique(graph_p g, int s, int k)
 				uchar* ind_b;
 				graph_p rev;
 				
+				/* avl */
+				avl a;
+				elt e;
+				
 				ind_b = malloc(ind_size*sizeof(uchar));
 
 				for(i=0; i<ind_size; i++)
@@ -193,11 +228,18 @@ uchar* quasi_clique(graph_p g, int s, int k)
 				deg = kdeg(g, k);
 				
 				rev = graph_reverse(g);
+				graph_print(g);
+				graph_print(rev);
+
+				a = avl_construct(deg, g->n);
+				avl_print(a);
+				printf("\n");
 
 				for(i=g->n; i>s; i--)
 				{
-								/* O(n) -> O(logn) with a sorting like algo */
-								id = ind_id_min(deg, ind, g->n);
+								/* O(logn) with a sorting like algo */
+								e = avl_get_min(a);
+								id = e.id;
 
 								/* updating the indicator */
 								ind_off(ind, id);
@@ -213,8 +255,10 @@ uchar* quasi_clique(graph_p g, int s, int k)
 												neigh = graph_all_neighbors(g, rev, id, &neigh_size);
 												sg = ind_inter(neigh, ind, neigh_size, &sg_size);
 
-												remove_listing(g, sg, clique, sg_size, k-1, k, deg);
+												remove_listing(g, sg, clique, sg_size, k-1, k, deg, &a);
 								}
+
+								a = avl_remove(a, e);
 
 								/* adjusting clique density */
 								m -= (graph_degre(g, id) + graph_degre(rev, id));
@@ -232,6 +276,7 @@ uchar* quasi_clique(graph_p g, int s, int k)
 								}
 				}
 
+				avl_free(a);
 				graph_free(rev);
 				return ind_b;
 }
