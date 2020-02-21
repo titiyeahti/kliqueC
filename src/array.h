@@ -34,6 +34,8 @@ void print(int* t, int n);
 /* O(nlogn) */
 void quicksort(int* t, int n);
 
+int max(int* t, int n);
+
 /* O(n) */
 int contains(int* t, int i, int n);
 
@@ -73,5 +75,7 @@ int* ind_inter(int* input, uchar* ind, int n, int* k);
 
 /* O(n) */
 int ind_size(uchar* ind, int n);
+
+void ind_print(uchar*, int n);
 
 #endif   /* ----- #ifndef array_INC  ----- */

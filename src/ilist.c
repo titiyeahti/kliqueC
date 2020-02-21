@@ -18,128 +18,149 @@
 
 #include "ilist.h"
 
-ilist ilist_new(int i)
+/* should be tested (at least 1000 times) */
+ilist ilist_move(ilist l1, ilist l2)
 {
-				ilist l;
-				l = malloc(sizeof(elt));
+				if (l1 == NULL)
+								return l2;
 
-				l->val = i;
-				l->next = NULL;
+				ilist p1 = l1->prev;
+				ilist n1 = l1->next;
+				ilist p2;
 
-				return l;
-}
+				/* Maintaining the chain */
+				if(p1 != NULL)
+								p1->next = n1;
+		
+				if(n1 != NULL)
+								n1->prev = p1;
 
-ilist ilist_add(ilist l, int i)
-{
-				ilist nl;
-				nl = malloc(sizeof(elt));
+				l1->next = l2;
 
-				nl->val = i;
-				nl->next = l;
+				if (l2 != NULL)
+				{
+								p2 = l2->prev;
 
-				return nl;
-}
-
-ilist ilist_copy(ilist l)
-{
-				if (l == NULL)
-								return NULL;
+								if (p2 != NULL)
+												p2->next = l1;
+								
+								l1->prev = p2;
+								l2->prev = l1;
+				}
 				else 
-								return ilist_add(ilist_copy(l->next), l->val);
-}
-
-int ilist_contains(ilist l, int i)
-{
-				if (l == NULL)
-								return 0;
-				else 
-				{
-								return l->val == i || ilist_contains(l->next, i);
-				}
-}
-
-ilist ilist_remove(ilist l, int i)
-{
-				if (l == NULL)
-								return NULL;
-				else 
-				{
-								if (l->val == i)
-								{
-												ilist nl = l->next;
-												free(l);
-												return nl;
-								}
-								else 
-								{
-												l->next = ilist_remove(l->next, i);
-												return l;
-								}
-				}
-}
-
-ilist ilist_inter(ilist l1, ilist l2)
-{
-				if (l1==NULL || l2==NULL)
-								return NULL;
-				else
-				{
-								if (l1->val == l2->val)
-												return ilist_add(ilist_inter(l1->next, l2->next), l1->val);
-								else 
-								{
-												if (l1->val > l2->val)
-																return ilist_inter(l2, l1->next);
-												else 
-																return ilist_inter(l1, l2->next);
-								}
-				}
-}
-
-int ilist_size(ilist l)
-{
-				int size = 0;
-				ilist it;
-				it = l;
-				while (it != NULL)
-				{
-								size ++;
-								it = it->next;
-				}
-				return size;
-}
-
-void ilist_iter(ilist l, void (* fun)(int, void*), void* arg)
-{
-				if (l != NULL)
-				{
-								fun(l->val, arg);
-								ilist_iter(l->next, fun, arg);
-				}
-}
-
-void ilist_free(ilist l)
-{
-				if (l != NULL)
-				{
-								ilist_free(l->next);
-								free(l);
-								l = NULL;
-				}
+								l1->prev = NULL;
+								
+				return l1;
 }
 
 void ilist_print(ilist l)
 {
 				if (l != NULL)
 				{
-								if (l->next == NULL)
-												printf("%d\n", l->val);
-								else
-								{
-												printf("%d, ", l->val);
-												ilist_print(l->next);
-								}
+								printf("%d ", l->val);
+								ilist_print(l->next);
 				}
 				else
 								printf("\n");
+}
+
+bucket bucket_new(int* deg, int m, int n)
+{
+				bucket res;
+				ilist* by_deg;
+				ilist* by_index;
+				int i;
+
+				by_deg = malloc(m*sizeof(ilist));
+				by_index = malloc(n*sizeof(ilist));
+
+				for(i=0; i<m; i++)
+								by_deg[i] = NULL;
+
+				for(i=0; i<n; i++)
+				{
+								by_index[i] = malloc(sizeof(elt));
+								by_index[i]->val = i;
+
+								by_deg[deg[i]] = ilist_move(by_index[i], by_deg[deg[i]]);
+				}
+
+				res.n = n;
+				res.m = m;
+				res.by_deg = by_deg;
+				res.by_index = by_index;
+
+				return res;
+}
+
+int bucket_pop_min(bucket b)
+{
+				int i;
+				ilist cur, next;
+
+				for(i=0; i<b.m; i++)
+				{
+								if(b.by_deg[i] != NULL)
+								{
+												cur = b.by_deg[i];
+												if(cur->prev != NULL)
+												{
+																printf("error : bucket_pop_min, not the head of by_deg[%d]\n",
+																								i);
+																exit(EXIT_FAILURE);
+												}
+												
+												next = cur->next;
+												if(next != NULL)
+																next->prev = NULL;
+
+												b.by_deg[i] = next;
+
+												return cur->val;
+								}
+				}
+				
+				printf("error : bucket_pop_min, by_deg is empty\n");
+				exit(EXIT_FAILURE);
+}
+
+void bucket_free(bucket b)
+{
+				int i;
+				for(i=0; i<b.n; i++)
+				{
+								free(b.by_index[i]);
+								b.by_index[i] = NULL;
+				}
+
+				free(b.by_deg);
+				b.by_deg = NULL;
+				free(b.by_index);
+				b.by_index = NULL;
+}
+
+void bucket_print(bucket b)
+{
+				int i;
+				for(i=0; i<b.m; i++)
+				{
+								printf("%d : ", i);
+								ilist_print(b.by_deg[i]);
+				}
+}
+
+void bucket_modify_deg(bucket b, int id, int deg, int ndeg)
+{
+				if(ndeg < 0)
+				{
+								printf("error : bucket_modify_deg, id, ndeg = %d, %d < 0\n", id,  ndeg);
+								exit(EXIT_FAILURE);
+				}
+				
+				ilist cur = b.by_index[id];
+
+				if(cur->prev == NULL)
+								b.by_deg[deg] = cur->next;
+
+				b.by_deg[ndeg] = ilist_move(cur, b.by_deg[ndeg]);
 }

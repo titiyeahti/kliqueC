@@ -24,31 +24,37 @@
 
 typedef struct elt{
 				int val;
-				struct elt* next; 
-}elt;
+				struct elt* prev;
+				struct elt* next;	
+} elt;
 
 typedef elt* ilist;
 
-ilist ilist_new(int i);
+typedef struct bucket{
+				int n, m;
+				ilist* by_index;
+				ilist* by_deg;
+} bucket;
 
-ilist ilist_add(ilist l, int i);
+typedef struct ret{
+				int val;
+				ilist l;
+} ret;
 
-ilist ilist_copy(ilist l);
-
-int ilist_contains(ilist l, int i);
-
-ilist ilist_remove(ilist l, int i);
-
-/* return the deacreasing sorted intersection of l1, l2 (also sorted from top to bottom) */
-ilist ilist_inter(ilist l1, ilist l2);
-
-int ilist_size(ilist l);
-
-void ilist_iter(ilist l, void (* fun)(int, void*), void* arg);
-
-void ilist_free(ilist l);
+/* move l1 != NULL to the head of l2 */
+ilist ilist_move(ilist l1, ilist l2);
 
 void ilist_print(ilist l);
+
+bucket bucket_new(int* deg, int m, int n);
+
+int bucket_pop_min(bucket b);
+
+void bucket_modify_deg(bucket b, int id, int deg, int ndeg);
+
+void bucket_free(bucket b);
+
+void bucket_print(bucket b);
 
 #endif   /* ----- #ifndef ilist_INC  ----- */
 

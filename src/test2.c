@@ -17,13 +17,18 @@
  */
 
 #include "projet.h"
+#include <time.h>
 
 int main(void)
 {
 				FILE* fp;
 				int* deg;
 				int k;
-				fp = fopen("../examples/amazon", "r");
+				clock_t t;
+
+				free(NULL);
+
+				fp = fopen("../examples/zebra", "r");
 
 				if(!fp)
 								return EXIT_FAILURE;
@@ -32,10 +37,12 @@ int main(void)
 				
 				printf("lu\n");
 
-				for (k=2; k<5; k++)
+				for (k=2; k<4; k++)
 				{
-								printf("%d\n",k);
+								t = clock();
 								deg = kdeg(g, k);
+								t = clock() - t;
+								printf("%d %f\n",k, (float)t/CLOCKS_PER_SEC);
 								free(deg);
 				}
 

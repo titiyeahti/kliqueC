@@ -21,13 +21,13 @@
 
 #include "graph.h"
 #include "array.h"
-#include "avl.h"
+#include "ilist.h"
 
 void listing(graph_p g, int* sg, int* clique, int size, int k, int ck, 
 								int to_free, int* deg);
 
 void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
-								int ck, int* deg, avl* a);
+								int ck, int* deg, bucket b);
 
 int* kdeg(graph_p g, int k);
 

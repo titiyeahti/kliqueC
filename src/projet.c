@@ -73,52 +73,36 @@ void listing(graph_p g, int* sg, int* clique, int size, int k, int ck,
 
 /* Target is in clique, more precisely clique[0] = target */
 void remove_listing(graph_p g, int* sg, int* clique, int size, int k, 
-								int ck, int* deg, avl* a)
+								int ck, int* deg, bucket b)
 {
 				int* neigh;
 				int* nsg;
 				int i, j;
 				int cur;
 				int neigh_size, nsg_size;
+				int d;
 
 				/* my graph representation is such that stop at k==2 is a pain */
 				if (k==1)
 				{
-								elt e;
-
-								/* O(size*logn) */
+								/* O(size) */
 								for(i=0; i < size; i++)
 								{
-												e = elt_create(deg[sg[i]], sg[i]);
-												*a = avl_remove(*a, e);
-												
+												d = deg[sg[i]];
 												deg[sg[i]] --;
-
-												if(deg[sg[i]])
-												{
-																e.deg--;
-																*a = avl_add(*a, e);
-												}
+												bucket_modify_deg(b, sg[i], d, deg[sg[i]]);
 								}
 
-								/* O((ck-2)logn) */
-								for(j=0; j<ck-1; j++)
-								{
-												if(j==0)
-																deg[clique[j]] -= size;
-												else
-												{
-																e = elt_create(deg[clique[j]], clique[j]);
-																*a = avl_remove(*a, e);
-																
-																deg[sg[i]] -= size;
+								/* updating the degre of the current target
+								 * no need to update b since it have been deleted before */
+								deg[clique[0]] -= size;
 
-																if(deg[sg[i]])
-																{
-																				e.deg -= size;
-																				*a = avl_add(*a, e);
-																}
-												}
+								/* O(1) */
+								for(j=1; j<ck-1; j++)
+								{
+												d = deg[clique[j]];
+												deg[clique[j]] -= size;
+												bucket_modify_deg(b, clique[j], d, deg[clique[j]]);
 								}
 				}
 				else 
@@ -126,14 +110,14 @@ void remove_listing(graph_p g, int* sg, int* clique, int size, int k,
 								for(i=0; i<size; i++)
 								{
 												cur = sg[i];
-												neigh = graph_neighbors(g, i, &neigh_size);
+												neigh = graph_neighbors(g, cur, &neigh_size);
 												nsg = inter(sg, neigh, size, neigh_size, &nsg_size);
 
 												clique[ck-k] = cur;
 												
 												if(nsg_size > 0)
 																remove_listing(g, nsg, clique, nsg_size, k-1, 
-																								ck, deg, a);
+																								ck, deg, b);
 								}
 				}
 				free(sg);
@@ -144,6 +128,9 @@ int* kdeg(graph_p g, int k)
 				int* deg = malloc(g->n*sizeof(int));
 				int clique[k];
 				int i;
+
+				for(i=0; i<g->n; i++)
+								deg[i] = 0;
 
 				for(i=0; i<k; i++)
 								clique[i] = -1;
@@ -195,26 +182,23 @@ uchar* quasi_clique(graph_p g, int s, int k)
 				clock_t t1, t2;
 				float t_rest, t_ind, t_density; 
 				int i, id;
-				int neigh_size, sg_size, ind_size;
-				int n, m;
+				int neigh_size, sg_size, i_size;
+				int n, m, max_deg;
 				double rho, rho_b;
 
-				ind_size = ((g->n) >> 3) + 1;
+				i_size = ((g->n) >> 3) + 1;
 
 				/* Some bits in the inds may be unused */
 				int *deg, *neigh, *sg;
 				int clique[k];
-				uchar ind[ind_size];
+				uchar ind[i_size];
 				uchar* ind_b;
 				graph_p rev;
 				
-				/* avl */
-				avl a;
-				elt e;
+				bucket b;
 				
-				ind_b = malloc(ind_size*sizeof(uchar));
-
-				for(i=0; i<ind_size; i++)
+				ind_b = malloc(i_size*sizeof(uchar));
+				for(i=0; i<i_size; i++)
 				{
 								ind[i] = 255;
 								ind_b[i] = 255;
@@ -228,47 +212,45 @@ uchar* quasi_clique(graph_p g, int s, int k)
 				deg = kdeg(g, k);
 				
 				rev = graph_reverse(g);
-				graph_print(g);
-				graph_print(rev);
 
-				a = avl_construct(deg, g->n);
-				avl_print(a);
-				printf("\n");
+				max_deg = max(deg, n)+1;
+
+				b = bucket_new(deg, max_deg, n);
 
 				for(i=g->n; i>s; i--)
 				{
-								/* O(logn) with a sorting like algo */
-								e = avl_get_min(a);
-								id = e.id;
+								/* O(1) amortized complexity O(max_deg) otw */
+								id = bucket_pop_min(b);
 
 								/* updating the indicator */
 								ind_off(ind, id);
 
+								/* calculate the neighbors of id in the current subgraph */
+								neigh = graph_all_neighbors(g, rev, id, &neigh_size);
+								sg = ind_inter(neigh, ind, neigh_size, &sg_size);
+
 								/* removnig cliques if needed */
 								if(deg[id] != 0)
 								{
-												if ((i&255) == 0)
-																printf("id : %d\n", id);
-
 												clique[0] = id;
-
-												neigh = graph_all_neighbors(g, rev, id, &neigh_size);
-												sg = ind_inter(neigh, ind, neigh_size, &sg_size);
-
-												remove_listing(g, sg, clique, sg_size, k-1, k, deg, &a);
+												remove_listing(g, sg, clique, sg_size, k-1, k, deg, b);
 								}
 
-								a = avl_remove(a, e);
+								if(deg[id] != 0)
+								{
+												printf("error : quasi_clique, remove_listing does not work well id ,deg = %d, %d\n", id, deg[id]);
+												exit(EXIT_FAILURE);
+								}
 
 								/* adjusting clique density */
-								m -= (graph_degre(g, id) + graph_degre(rev, id));
+								m -= sg_size;
 								n --;
 								rho = density(n, m);
-								
+
 								/* update the best */
 								if(rho > rho_b)
 								{
-												memcpy(ind_b, ind, ind_size*sizeof(uchar));
+												memcpy(ind_b, ind, i_size*sizeof(uchar));
 												rho_b = rho;
 												
 												if (rho_b == 1.)
@@ -276,7 +258,7 @@ uchar* quasi_clique(graph_p g, int s, int k)
 								}
 				}
 
-				avl_free(a);
+				bucket_free(b);
 				graph_free(rev);
 				return ind_b;
 }
