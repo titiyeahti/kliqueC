@@ -34,10 +34,11 @@ int main(void)
 								return EXIT_FAILURE;
 
 				graph_p g = graph_from_file(fp);
+				fclose(fp);
 				
 				printf("lu\n");
 
-				for (k=2; k<4; k++)
+				for (k=2; k<5; k++)
 				{
 								t = clock();
 								deg = kdeg(g, k);

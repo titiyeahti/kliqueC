@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 				clock_t t1, t2;
 				
 				if(argc != 2)
-								fp = fopen("../examples/amazon", "r");
+								fp = fopen("../examples/zebra", "r");
 				else 
 								fp = fopen(argv[1], "r");
 
@@ -36,8 +36,10 @@ int main(int argc, char** argv)
 
 				graph_p g = graph_from_file(fp);
 
+				fclose(fp);
+
 				printf("%% k size density time\n");
-				for (k=3; k<5; k++)
+				for (k=2; k<5; k++)
 				{
 								t1 = clock();
 								ind = quasi_clique(g, S, k);

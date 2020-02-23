@@ -81,6 +81,8 @@ bucket bucket_new(int* deg, int m, int n)
 				{
 								by_index[i] = malloc(sizeof(elt));
 								by_index[i]->val = i;
+								by_index[i]->next = NULL;
+								by_index[i]->prev = NULL;
 
 								by_deg[deg[i]] = ilist_move(by_index[i], by_deg[deg[i]]);
 				}
@@ -103,12 +105,6 @@ int bucket_pop_min(bucket b)
 								if(b.by_deg[i] != NULL)
 								{
 												cur = b.by_deg[i];
-												if(cur->prev != NULL)
-												{
-																printf("error : bucket_pop_min, not the head of by_deg[%d]\n",
-																								i);
-																exit(EXIT_FAILURE);
-												}
 												
 												next = cur->next;
 												if(next != NULL)
@@ -151,12 +147,6 @@ void bucket_print(bucket b)
 
 void bucket_modify_deg(bucket b, int id, int deg, int ndeg)
 {
-				if(ndeg < 0)
-				{
-								printf("error : bucket_modify_deg, id, ndeg = %d, %d < 0\n", id,  ndeg);
-								exit(EXIT_FAILURE);
-				}
-				
 				ilist cur = b.by_index[id];
 
 				if(cur->prev == NULL)

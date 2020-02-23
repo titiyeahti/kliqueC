@@ -179,8 +179,6 @@ double clique_density(graph_p g, uchar* ind)
 
 uchar* quasi_clique(graph_p g, int s, int k)
 {
-				clock_t t1, t2;
-				float t_rest, t_ind, t_density; 
 				int i, id;
 				int neigh_size, sg_size, i_size;
 				int n, m, max_deg;
@@ -225,9 +223,10 @@ uchar* quasi_clique(graph_p g, int s, int k)
 								/* updating the indicator */
 								ind_off(ind, id);
 
-								/* calculate the neighbors of id in the current subgraph */
+								/* compute the neighbors of id in the current subgraph */
 								neigh = graph_all_neighbors(g, rev, id, &neigh_size);
 								sg = ind_inter(neigh, ind, neigh_size, &sg_size);
+								free(neigh);
 
 								/* removnig cliques if needed */
 								if(deg[id] != 0)
@@ -235,12 +234,8 @@ uchar* quasi_clique(graph_p g, int s, int k)
 												clique[0] = id;
 												remove_listing(g, sg, clique, sg_size, k-1, k, deg, b);
 								}
-
-								if(deg[id] != 0)
-								{
-												printf("error : quasi_clique, remove_listing does not work well id ,deg = %d, %d\n", id, deg[id]);
-												exit(EXIT_FAILURE);
-								}
+								else 
+												free(sg);
 
 								/* adjusting clique density */
 								m -= sg_size;
@@ -258,6 +253,7 @@ uchar* quasi_clique(graph_p g, int s, int k)
 								}
 				}
 
+				free(deg);
 				bucket_free(b);
 				graph_free(rev);
 				return ind_b;
