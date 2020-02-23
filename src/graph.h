@@ -30,21 +30,24 @@ struct graph
 
 typedef struct graph* graph_p;
 
-/* must free the returned value at some point */
-/* O(2*m) */
+/* Warning : Allocates memory;
+ * Requires : fd must be a file descriptor of a file containing ;
+ * an undirected unweighted graph;
+ * Returns the graph corresponding to the file;
+ * O(2*m) */
 graph_p graph_from_file(FILE* fd);
 
-/* O(1) */
+/* Returns the degre of i in g;
+ * O(1) */
 int graph_degre(graph_p g, int i);
 
-/* NO MALLOC be CAREFULL
+/* Returns the neighbors of i in g and sets k to the size of the returned array;
  * O(1) */
 int* graph_neighbors(graph_p g, int i, int* k);
 
-/* counting incomming edges to vertices
- * cummulative sum over vertices
- * adding the actual reverse edges
- * sort ? */
+/* Warning : allocates memory;
+ * Returns a graph with the same edges as g but reverted
+ * O(n+m) */
 graph_p graph_reverse(graph_p g);
 
 /* Malloc
