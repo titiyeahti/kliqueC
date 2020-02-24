@@ -28,7 +28,7 @@ int main(void)
 
 				free(NULL);
 
-				fp = fopen("../examples/zebra", "r");
+				fp = fopen("../examples/orkut", "r");
 
 				if(!fp)
 								return EXIT_FAILURE;

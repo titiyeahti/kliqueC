@@ -128,7 +128,9 @@ int* dich_inter(int* t1, int* t2, int n1, int n2, int* k)
 												(*k) ++;
 								}
 				}
-				
+				if (*k == 0)
+								return NULL;
+
 				int *res = malloc((*k)*sizeof(int));
 				memcpy(res, t, (*k)*sizeof(int));
 
@@ -165,6 +167,8 @@ int* lin_inter(int* t1, int* t2, int n1, int n2, int* k)
 								}
 				}
 
+				if (*k == 0)
+								return NULL;
 
 				int *res = malloc((*k)*sizeof(int));
 				memcpy(res, t, (*k)*sizeof(int));
@@ -282,6 +286,8 @@ int* ind_inter(int* input, uchar* ind, int n, int* k)
 								}
 				}
 
+				if (*k == 0)
+								return NULL;
 				res = malloc((*k)*sizeof(int));
 				memcpy(res, t, (*k)*sizeof(int));
 				return res;
