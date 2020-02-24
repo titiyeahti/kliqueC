@@ -1,13 +1,13 @@
-##KliqueC
+## KliqueC
 
 This project is supposed to implement an heuristic method to find quasi cliques in a graphe.
 
-###Files
+### Files
 - `bin/`, Makefile and compilation files;
 - `src/`, the sources;
 - `examples/`, a graph in a file.
 
-###Usage
+### Usage
 ```bash
 cd bin
 make
